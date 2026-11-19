@@ -6,7 +6,6 @@ import { publicGet } from '@/lib/server-api';
 
 type Props = { params: Promise<{ id: string }> };
 interface Article { id: string; title: string; category: string; body: string; updatedAt: string }
-export const revalidate = 300;
 
 const load = (id: string) => (/^[0-9a-f-]{36}$/.test(id) ? publicGet<Article>(`/v1/help/articles/${id}`, 300).catch(() => null) : Promise.resolve(null));
 

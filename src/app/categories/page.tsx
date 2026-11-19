@@ -6,7 +6,6 @@ import { getCatalogue } from '@/lib/catalogue';
 import { CATEGORY_ICON } from '@/lib/category-icons';
 
 export const metadata: Metadata = { title: 'All categories', description: 'Browse everything we sell by category.', alternates: { canonical: '/categories' } };
-export const revalidate = 60;
 
 export default async function CategoriesPage() {
   const cat = await getCatalogue();

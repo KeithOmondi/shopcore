@@ -13,7 +13,6 @@ import { SITE_URL } from '@/lib/server-api';
 import type { Attribute, Product } from '@/lib/types';
 
 type Props = { params: Promise<{ id: string }> };
-export const revalidate = 60;
 
 async function find(id: string) {
   if (!/^[0-9a-f-]{36}$/.test(id)) return null;

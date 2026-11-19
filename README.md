@@ -24,11 +24,19 @@ npm run build && npm start      # production build
 - **The cart** is kept in the browser. Checkout needs an account, because the API places orders for signed-in customers.
 - **Pictures** come from the API through `/v1/files/...` (proxied by this site).
 
-## Deploy (Vercel)
+## Deploy (Cloudflare Workers)
 
-1. New project from this repo, **Root Directory: `store`**.
-2. Environment variables: `SHOPCORE_API_URL` and `NEXT_PUBLIC_SITE_URL` (the website's own address).
-3. The API must trust the proxy headers so that rate limits see the visitor's address (`TRUST_PROXY` on the API).
+The site runs on Cloudflare Workers through OpenNext (`wrangler.jsonc`, `open-next.config.ts`).
+
+1. Cloudflare dashboard → Workers & Pages → Create → import this repo. **Root directory: `store`**.
+2. Build command: `npx opennextjs-cloudflare build`. Deploy command: `npx wrangler deploy`.
+3. Variables (Settings → Variables and secrets): `SHOPCORE_API_URL` (the API address; also set in `wrangler.jsonc`) and `NEXT_PUBLIC_SITE_URL` (the site's own address, e.g. `https://shop.example.com`). Add `NEXT_PUBLIC_SITE_URL` as a **build** variable too, because it is baked into the pages at build time.
+4. On the API (Render): set `TRUST_PROXY` so rate limits see each visitor, and allow the site's address if the API restricts origins.
+5. Custom domain: Worker → Settings → Domains & Routes.
+
+From your own computer: `npm run deploy` (needs `npx wrangler login` once), `npm run preview` to try it locally on the Workers runtime.
+
+Pages are built on each visit and the catalogue is cached at Cloudflare's edge for a minute, so the build never needs the API to be reachable.
 
 ## Not included yet
 

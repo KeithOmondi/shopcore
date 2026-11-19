@@ -4,7 +4,6 @@ import Link from 'next/link';
 import { publicGet } from '@/lib/server-api';
 
 export const metadata: Metadata = { title: 'Help centre', description: 'Answers about orders, delivery, payments, returns and your account.' };
-export const revalidate = 300;
 
 interface Article { id: string; title: string; category: string; excerpt: string }
 

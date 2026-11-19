@@ -9,6 +9,9 @@ import { SITE_URL } from '@/lib/server-api';
 
 import './globals.css';
 
+// Pages are built on each visit from the shop's catalogue (cached for a minute at the edge), so a build never needs the API to be reachable.
+export const dynamic = 'force-dynamic';
+
 const geist = Geist({ subsets: ['latin'], variable: '--font-geist-sans' });
 
 export const metadata: Metadata = {

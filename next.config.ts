@@ -1,6 +1,6 @@
 import type { NextConfig } from "next";
 
-const API = (process.env.SHOPCORE_API_URL ?? "http://localhost:8080").replace(/\/$/, "");
+const API = (process.env.SHOPCORE_API_URL || (process.env.NODE_ENV === "production" ? "https://shopcoreserver.onrender.com" : "http://localhost:8080")).replace(/\/$/, "");
 
 const nextConfig: NextConfig = {
   turbopack: {

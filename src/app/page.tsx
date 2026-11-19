@@ -11,7 +11,6 @@ import { CATEGORY_ICON } from '@/lib/category-icons';
 import { bannerHref } from '@/lib/links';
 import type { Product } from '@/lib/types';
 
-export const revalidate = 60;
 
 const PERKS: [string, string, string, string][] = [
   ['mpesa', 'Pay with M-Pesa', 'Or cash when it arrives', '/help'],
