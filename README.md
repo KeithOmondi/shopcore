@@ -29,7 +29,7 @@ npm run build && npm start      # production build
 The site runs on Cloudflare Workers through OpenNext (`wrangler.jsonc`, `open-next.config.ts`).
 
 1. Cloudflare dashboard → Workers & Pages → Create → import this repo. **Root directory: `store`**.
-2. Build command: `npx opennextjs-cloudflare build`. Deploy command: `npx wrangler deploy`.
+2. Build command: `npm run build` (it runs OpenNext). Deploy command: `npx wrangler deploy`.
 3. Variables (Settings → Variables and secrets): `SHOPCORE_API_URL` (the API address; also set in `wrangler.jsonc`) and `NEXT_PUBLIC_SITE_URL` (the site's own address, e.g. `https://shop.example.com`). Add `NEXT_PUBLIC_SITE_URL` as a **build** variable too, because it is baked into the pages at build time.
 4. On the API (Render): set `TRUST_PROXY` so rate limits see each visitor, and allow the site's address if the API restricts origins.
 5. Custom domain: Worker → Settings → Domains & Routes.
