@@ -1,0 +1,60 @@
+@import "tailwindcss";
+
+/* ShopCore brand: warm terracotta and cream, the same as the app. */
+:root {
+  --brand: #c94f00;
+  --brand-dark: #a84300;
+  --brand-soft: #f6d9c4;
+  --brand-tint: #fbede3;
+  --ink: #2b211b;
+  --body: #4a3f37;
+  --muted: #7a6e64;
+  --line: #ebe3d5;
+  --border: #ddd3c3;
+  --soft: #f5efe5;
+  --cream: #fbf7f0;
+  --success: #16a34a;
+  --danger: #dc2626;
+  --warn: #f59e0b;
+}
+
+@theme inline {
+  --color-brand: var(--brand);
+  --color-brand-dark: var(--brand-dark);
+  --color-brand-soft: var(--brand-soft);
+  --color-brand-tint: var(--brand-tint);
+  --color-ink: var(--ink);
+  --color-body: var(--body);
+  --color-muted: var(--muted);
+  --color-line: var(--line);
+  --color-border: var(--border);
+  --color-soft: var(--soft);
+  --color-cream: var(--cream);
+  --color-success: var(--success);
+  --color-danger: var(--danger);
+  --color-warn: var(--warn);
+  --font-sans: var(--font-geist-sans), system-ui, sans-serif;
+}
+
+html { background: var(--cream); }
+body { background: var(--cream); color: var(--body); font-family: var(--font-sans); -webkit-font-smoothing: antialiased; }
+h1, h2, h3 { color: var(--ink); }
+a { color: inherit; }
+:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; border-radius: 6px; }
+
+@layer components {
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: .5rem; min-height: 46px; padding: 0 1.25rem; border-radius: 999px; font-weight: 600; font-size: .95rem; transition: background .15s, border-color .15s, opacity .15s; cursor: pointer; text-align: center; }
+.btn:disabled, .btn[aria-disabled="true"] { opacity: .55; cursor: not-allowed; }
+.btn-primary { background: var(--brand); color: #fff; }
+.btn-primary:hover:not(:disabled) { background: var(--brand-dark); }
+.btn-light { background: #fff; border: 1px solid var(--border); color: var(--ink); }
+.btn-light:hover:not(:disabled) { border-color: var(--brand); }
+.btn-ghost { color: var(--brand); }
+.input { width: 100%; min-height: 48px; border: 1px solid var(--border); background: #fff; border-radius: 14px; padding: 0 14px; color: var(--ink); font-size: 1rem; }
+.input:focus { border-color: var(--brand); outline: none; box-shadow: 0 0 0 3px var(--brand-soft); }
+.card { background: #fff; border: 1px solid var(--line); border-radius: 18px; }
+.label { display: block; font-size: .85rem; font-weight: 600; color: var(--ink); margin-bottom: .35rem; }
+.field-error { color: var(--danger); font-size: .85rem; margin-top: .3rem; }
+.skeleton { background: linear-gradient(90deg, var(--soft), #fff, var(--soft)); background-size: 200% 100%; animation: sk 1.2s linear infinite; border-radius: 12px; }
+}
+@keyframes sk { to { background-position: -200% 0; } }
