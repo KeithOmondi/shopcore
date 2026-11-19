@@ -12,6 +12,10 @@ const LINKS = [
   { href: '/account/orders', label: 'My orders', icon: 'order' },
   { href: '/account/wishlist', label: 'Wishlist', icon: 'heart' },
   { href: '/account/addresses', label: 'Addresses', icon: 'home' },
+  { href: '/account/notifications', label: 'Notifications', icon: 'box' },
+  { href: '/account/rewards', label: 'Rewards', icon: 'star' },
+  { href: '/account/support', label: 'Support', icon: 'help' },
+  { href: '/account/settings', label: 'Settings', icon: 'lock' },
 ];
 
 export default function AccountLayout({ children }: { children: React.ReactNode }) {

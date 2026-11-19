@@ -6,11 +6,13 @@ import { Suspense, useCallback, useEffect, useRef, useState } from 'react';
 
 import { Field, FormError } from '@/components/AuthBits';
 import { Icon } from '@/components/icons';
+import { StarPicker } from '@/components/StarPicker';
 import { useAuth, useToast } from '@/components/providers';
 import { ApiError, get, post } from '@/lib/client';
 import { dateTime, kes, normalizeKenyanPhone } from '@/lib/format';
 import { METHOD_TEXT, STATUS_TEXT, type MpesaStatus, type OrderDetail } from '@/lib/orders';
 
+const REVIEW_TOPICS = ['Delivery', 'Product quality', 'Value for money', 'Customer service'];
 const RETURN_REASONS = ['Item arrived damaged', 'Wrong item delivered', 'Item doesn’t work', 'Not as described', 'Changed my mind'];
 
 function OrderView() {
@@ -26,6 +28,10 @@ function OrderView() {
   const [payMsg, setPayMsg] = useState('');
   const [returning, setReturning] = useState(false);
   const [ret, setRet] = useState({ productId: '', qty: 1, reason: RETURN_REASONS[0]!, statement: '' });
+  const [rev, setRev] = useState({ rating: 0, topic: REVIEW_TOPICS[0]!, text: '' });
+  const [rider, setRider] = useState({ stars: 0, comment: '' });
+  const [refunding, setRefunding] = useState(false);
+  const [ref, setRef] = useState({ amount: '', reason: '' });
   const [busy, setBusy] = useState(false);
   const alive = useRef(true);
   useEffect(() => { alive.current = true; return () => { alive.current = false; }; }, []);
@@ -83,6 +89,30 @@ function OrderView() {
     catch (e2) { setErr(e2 instanceof ApiError ? e2.message : 'Couldn’t send your request.'); } finally { setBusy(false); }
   };
 
+  const sendReview = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!rev.rating) { setErr('Choose a star rating first.'); return; }
+    setBusy(true); setErr('');
+    try { await post(`orders/${id}/review`, { rating: rev.rating, topic: rev.topic, text: rev.text.trim() }); toast('Thanks for your review!'); await load(); }
+    catch (e2) { setErr(e2 instanceof ApiError ? e2.message : 'Couldn’t send your review.'); } finally { setBusy(false); }
+  };
+  const sendRider = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!rider.stars) { setErr('Choose a star rating for your rider.'); return; }
+    setBusy(true); setErr('');
+    try { await post(`orders/${id}/rider-rating`, { stars: rider.stars, comment: rider.comment.trim() }); toast('Thanks for rating your rider!'); await load(); }
+    catch (e2) { setErr(e2 instanceof ApiError ? e2.message : 'Couldn’t send your rating.'); } finally { setBusy(false); }
+  };
+  const sendRefund = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const cents = Math.round(Number(ref.amount) * 100);
+    if (!Number.isFinite(cents) || cents < 100) { setErr('Enter the amount you want back, in KES.'); return; }
+    if (ref.reason.trim().length < 3) { setErr('Tell us why you are asking for a refund.'); return; }
+    setBusy(true); setErr('');
+    try { await post(`orders/${id}/refund-requests`, { amountCents: cents, reason: ref.reason.trim() }); toast('Refund request sent. We’ll be in touch.'); setRefunding(false); setRef({ amount: '', reason: '' }); await load(); }
+    catch (e2) { setErr(e2 instanceof ApiError ? e2.message : 'Couldn’t send your request.'); } finally { setBusy(false); }
+  };
+
   if (user === undefined || (user && !o && !err)) return <div className="space-y-3" aria-busy="true"><div className="skeleton h-10 w-64" /><div className="skeleton h-48" /></div>;
   if (!user) return null;
   if (!o) return <div className="card mx-auto max-w-lg p-10 text-center"><h1 className="text-xl font-extrabold">{err || 'Order not found'}</h1><Link href="/account/orders" className="btn btn-light mt-5">My orders</Link></div>;
@@ -137,13 +167,45 @@ function OrderView() {
               {o.tracking.failure && <p className="mt-4 rounded-xl bg-danger/10 p-3 text-sm font-semibold text-danger">{o.tracking.failure}</p>}
               {(o.tracking.rider || o.tracking.handoverCode) && (
                 <div className="mt-5 grid gap-3 rounded-2xl bg-soft p-4 text-sm sm:grid-cols-2">
-                  {o.tracking.rider && <div><p className="text-xs font-bold uppercase text-muted">Your rider</p><p className="font-semibold text-ink">{o.tracking.rider.name}</p><p className="text-muted">{[o.tracking.rider.vehicle, o.tracking.rider.plate].filter(Boolean).join(' · ')}</p>{o.tracking.rider.phone && <a className="font-bold text-brand" href={`tel:${o.tracking.rider.phone}`}>{o.tracking.rider.phone}</a>}</div>}
+                  {o.tracking.rider && <div><p className="text-xs font-bold uppercase text-muted">Your rider</p>{o.tracking.riderLocation && o.status === 'in_transit' && <a className="mb-1 inline-block font-bold text-brand hover:underline" target="_blank" rel="noopener noreferrer" href={`https://www.google.com/maps?q=${o.tracking.riderLocation.lat},${o.tracking.riderLocation.lng}`}>See where your rider is</a>}<p className="font-semibold text-ink">{o.tracking.rider.name}</p><p className="text-muted">{[o.tracking.rider.vehicle, o.tracking.rider.plate].filter(Boolean).join(' · ')}</p>{o.tracking.rider.phone && <a className="font-bold text-brand" href={`tel:${o.tracking.rider.phone}`}>{o.tracking.rider.phone}</a>}</div>}
                   {o.tracking.handoverCode && <div><p className="text-xs font-bold uppercase text-muted">Delivery code</p><p className="text-2xl font-extrabold tracking-widest text-ink">{o.tracking.handoverCode}</p><p className="text-muted">Give this code to the rider when you get your order.</p></div>}
                 </div>
               )}
             </section>
           )}
           {cancelled && <section className="card p-5"><h2 className="text-lg font-extrabold">This order was cancelled</h2>{o.cancelReason && <p className="mt-1 text-sm text-muted">{o.cancelReason.replace(/_/g, ' ')}</p>}</section>}
+
+          {delivered && (
+            <section className="card p-5" aria-labelledby="rev">
+              <h2 id="rev" className="mb-3 text-lg font-extrabold">Rate your order</h2>
+              {o.review ? (
+                <div className="space-y-2 text-sm">
+                  <StarPicker value={o.review.rating} onChange={() => {}} label="Your rating" />
+                  {o.review.text && <p>{o.review.text}</p>}
+                  {o.review.reply && <p className="rounded-xl bg-soft p-3"><b className="text-ink">ShopCore replied:</b> {o.review.reply}</p>}
+                </div>
+              ) : (
+                <form onSubmit={sendReview} className="space-y-3" noValidate>
+                  <StarPicker value={rev.rating} onChange={(n) => setRev((r) => ({ ...r, rating: n }))} label="Your rating" />
+                  <Field label="What is it about?"><select className="input" value={rev.topic} onChange={(e) => setRev((r) => ({ ...r, topic: e.target.value }))}>{REVIEW_TOPICS.map((t) => <option key={t}>{t}</option>)}</select></Field>
+                  <Field label="Tell others about it (optional)"><textarea className="input !min-h-24 py-3" maxLength={2000} value={rev.text} onChange={(e) => setRev((r) => ({ ...r, text: e.target.value }))} /></Field>
+                  <button className="btn btn-primary" disabled={busy}>Send review</button>
+                </form>
+              )}
+              {o.tracking.rider && (
+                <div className="mt-5 border-t border-line pt-4">
+                  <h3 className="mb-2 font-bold text-ink">Rate your rider, {o.tracking.rider.name}</h3>
+                  {o.riderRating ? <div className="space-y-1 text-sm"><StarPicker value={o.riderRating.stars} onChange={() => {}} label="Your rider rating" />{o.riderRating.comment && <p>{o.riderRating.comment}</p>}</div> : (
+                    <form onSubmit={sendRider} className="space-y-3" noValidate>
+                      <StarPicker value={rider.stars} onChange={(n) => setRider((r) => ({ ...r, stars: n }))} label="Your rider rating" />
+                      <Field label="Comment (optional)"><textarea className="input !min-h-20 py-3" maxLength={500} value={rider.comment} onChange={(e) => setRider((r) => ({ ...r, comment: e.target.value }))} /></Field>
+                      <button className="btn btn-light" disabled={busy}>Rate rider</button>
+                    </form>
+                  )}
+                </div>
+              )}
+            </section>
+          )}
 
           <section className="card p-5" aria-labelledby="its">
             <h2 id="its" className="mb-3 text-lg font-extrabold">Items</h2>
@@ -181,8 +243,18 @@ function OrderView() {
           <div className="flex flex-col gap-3">
             <button className="btn btn-light" onClick={() => void receipt()}><Icon name="download" size={18} /> Download receipt (PDF)</button>
             {o.canCancel && <button className="btn btn-light !text-danger" disabled={busy} onClick={() => void cancel()}>Cancel order</button>}
+            {o.paid && !cancelled && <button className="btn btn-light" onClick={() => { setRefunding((v) => !v); setRef((r) => ({ ...r, amount: r.amount || String(Math.round(o.totals.totalCents / 100)) })); }}>Ask for a refund</button>}
+            <Link href={`/account/support?order=${o.id}`} className="btn btn-light"><Icon name="help" size={18} /> Get help with this order</Link>
             {delivered && <button className="btn btn-light" onClick={() => { setReturning((v) => !v); setRet((r) => ({ ...r, productId: r.productId || o.items[0]?.productId || '' })); }}>Request a return</button>}
           </div>
+          {refunding && (
+            <form onSubmit={sendRefund} className="card space-y-3 p-5" noValidate>
+              <h2 className="text-lg font-extrabold">Ask for a refund</h2>
+              <Field label="Amount (KES)" hint={`Up to ${kes(o.totals.totalCents)}`}><input className="input" inputMode="decimal" value={ref.amount} onChange={(e) => setRef((r) => ({ ...r, amount: e.target.value }))} /></Field>
+              <Field label="Why?"><textarea className="input !min-h-24 py-3" maxLength={500} value={ref.reason} onChange={(e) => setRef((r) => ({ ...r, reason: e.target.value }))} /></Field>
+              <button className="btn btn-primary w-full" disabled={busy}>Send request</button>
+            </form>
+          )}
           {returning && (
             <form onSubmit={sendReturn} className="card space-y-3 p-5" noValidate>
               <h2 className="text-lg font-extrabold">Request a return</h2>

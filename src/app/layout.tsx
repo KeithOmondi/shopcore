@@ -4,7 +4,8 @@ import { Geist } from 'next/font/google';
 import { Footer } from '@/components/Footer';
 import { Header, MobileNav } from '@/components/Header';
 import { Providers } from '@/components/providers';
-import { getCatalogue } from '@/lib/catalogue';
+import { Maintenance } from '@/components/Maintenance';
+import { getAppStatus, getCatalogue, getPages } from '@/lib/catalogue';
 import { SITE_URL } from '@/lib/server-api';
 
 import './globals.css';
@@ -24,17 +25,20 @@ export const viewport: Viewport = { themeColor: '#c94f00', width: 'device-width'
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   // The menus come from the shop's own categories. If the shop can't be reached the page still opens, without them.
+  const [status, pages] = await Promise.all([getAppStatus(), getPages()]);
   const categories = await getCatalogue().then((c) => c.categories.map((x) => ({ handle: x.handle, name: x.name, subs: x.subcategories })), () => []);
   return (
     <html lang="en" className={geist.variable}>
       <body className="min-h-screen">
         <a href="#main" className="sr-only focus:not-sr-only focus:fixed focus:left-3 focus:top-3 focus:z-[200] focus:rounded-full focus:bg-white focus:px-4 focus:py-2">Skip to content</a>
+        {status.maintenance ? <Maintenance message={status.message} returnAt={status.returnAt} /> : (
         <Providers>
           <Header categories={categories} />
           <main id="main" className="mx-auto w-full max-w-7xl px-4 py-4 pb-24 md:py-6 md:pb-6">{children}</main>
-          <Footer categories={categories} />
+          <Footer categories={categories} pages={pages} />
           <MobileNav />
         </Providers>
+        )}
       </body>
     </html>
   );

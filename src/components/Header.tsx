@@ -6,6 +6,8 @@ import { Suspense, useEffect, useRef, useState } from 'react';
 
 import { CategoryFlyout, type NavCategory } from './CategoryFlyout';
 import { Icon } from './icons';
+import { get } from '@/lib/client';
+
 import { useAuth, useCart } from './providers';
 
 export type { NavCategory };
@@ -37,13 +39,36 @@ function useOutside(open: boolean, close: () => void) {
   return ref;
 }
 
+/** The bell: how many updates the shopper hasn't looked at yet. */
+function NotesBell() {
+  const { user } = useAuth();
+  const [n, setN] = useState(0);
+  useEffect(() => {
+    if (!user) { setN(0); return; }
+    let live = true;
+    const ask = () => { if (document.visibilityState === 'visible') get<{ unread: number }>('customer/notifications').then((r) => { if (live) setN(r.unread); }, () => {}); };
+    const clear = () => setN(0);
+    ask();
+    const t = setInterval(ask, 90_000);
+    window.addEventListener('sc:notes-read', clear);
+    return () => { live = false; clearInterval(t); window.removeEventListener('sc:notes-read', clear); };
+  }, [user]);
+  if (!user) return null;
+  return (
+    <Link href="/account/notifications" className="relative hidden items-center rounded-full px-3 py-2 text-ink hover:bg-soft sm:flex" aria-label={n ? `Notifications, ${n} new` : 'Notifications'}>
+      <Icon name="box" size={22} />
+      {n > 0 && <span className="absolute left-6 top-0.5 grid min-w-5 place-items-center rounded-full bg-danger px-1 text-[11px] font-bold leading-5 text-white">{n > 99 ? '99+' : n}</span>}
+    </Link>
+  );
+}
+
 function AccountMenu() {
   const { user, logOut } = useAuth();
   const path = usePathname();
   const [open, setOpen] = useState(false);
   const ref = useOutside(open, () => setOpen(false));
   useEffect(() => setOpen(false), [path]);
-  const items: [string, string, string][] = [['/account', 'My account', 'profile'], ['/account/orders', 'Orders', 'order'], ['/account/wishlist', 'Saved items', 'heart'], ['/account/addresses', 'Addresses', 'home']];
+  const items: [string, string, string][] = [['/account', 'My account', 'profile'], ['/account/orders', 'Orders', 'order'], ['/account/wishlist', 'Saved items', 'heart'], ['/account/rewards', 'Rewards', 'star'], ['/account/support', 'Support', 'help'], ['/account/settings', 'Settings', 'lock']];
   if (user === undefined) return <span className="h-10 w-24" />;
   return (
     <div className="relative" ref={ref}>
@@ -109,6 +134,7 @@ export function Header({ categories }: { categories: NavCategory[] }) {
         <Link href="/" className="shrink-0 text-2xl font-extrabold tracking-tight text-ink" aria-label="ShopCore home">shop<span className="text-brand">core</span></Link>
         <div className="hidden flex-1 md:block"><Suspense fallback={<div className="input" />}><SearchBox /></Suspense></div>
         <nav className="ml-auto flex items-center gap-1" aria-label="Account and cart">
+          <NotesBell />
           <AccountMenu />
           <Link href="/help" className="hidden items-center gap-2 rounded-full px-3 py-2 text-sm font-semibold text-ink hover:bg-soft lg:flex"><Icon name="help" size={22} /> Help</Link>
           <Link href="/cart" className="relative flex items-center gap-2 rounded-full px-3 py-2 text-sm font-semibold text-ink hover:bg-soft" aria-label={`Cart, ${count} ${count === 1 ? 'item' : 'items'}`}>

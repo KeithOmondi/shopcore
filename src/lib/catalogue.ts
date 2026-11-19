@@ -114,3 +114,16 @@ export function list(cat: Catalogue, q: Query): Listing {
   const page = Math.min(Math.max(1, q.page ?? 1), pages);
   return { items: items.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE), total: items.length, page, pages, brands, subs, priceMin, priceMax, category };
 }
+
+export interface Bundle { id: string; name: string; type: string; description: string; items: { productId: string; quantity: number }[]; priceCents: number; percent: number; minItems: number }
+export interface Programmes {
+  loyalty: { active: boolean; earnRate: number; pointValueCents: number; minOrderCents: number; minRedeem: number; expiry: string; bonuses: { id: string; name: string; sub: string; on: boolean }[] };
+  referral: { active: boolean; advocate: string; friend: string; minSpendCents: number; message: string };
+}
+export interface AppStatus { maintenance: boolean; message: string; returnAt: string | null }
+
+export const getBundles = () => publicGet<{ items: Bundle[] }>('/v1/storefront/bundles', 60).then((r) => r.items).catch((): Bundle[] => []);
+export const getProgrammes = () => publicGet<Programmes>('/v1/storefront/programmes', 120).catch(() => null);
+export const getPages = () => publicGet<{ items: { title: string; slug: string }[] }>('/v1/storefront/pages', 300).then((r) => r.items).catch(() => [] as { title: string; slug: string }[]);
+/** Is the shop closed for maintenance? If the API can't be reached the shop is treated as open, so a hiccup never hides the site. */
+export const getAppStatus = () => publicGet<AppStatus>('/v1/app/status', 15).catch((): AppStatus => ({ maintenance: false, message: '', returnAt: null }));

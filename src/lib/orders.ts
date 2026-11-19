@@ -28,7 +28,9 @@ export interface OrderDetail {
   delivery: { name: string; phone: string; area: string; address: string } | null;
   returns: { id: string; number: string; item: string; qty: number; reason: string; status: string; message: string; at: string }[];
   refunds: { id: string; number: string; amountCents: number; reason: string; status: string }[];
-  tracking: { steps: OrderStep[]; failure: string | null; rider: { name: string; phone: string | null; vehicle: string | null; plate: string | null } | null; handoverCode: string | null };
+  review: { rating: number; text: string; at: string; reply: string | null } | null;
+  riderRating: { stars: number; comment: string } | null;
+  tracking: { steps: OrderStep[]; failure: string | null; rider: { name: string; phone: string | null; vehicle: string | null; plate: string | null } | null; handoverCode: string | null; riderLocation: { lat: number; lng: number; at: string | null } | null };
 }
 export interface OrderSummary { id: string; number: string; status: OrderStatus; placedAt: string; paid: boolean; paymentMethod: 'mpesa' | 'card' | 'cod' | null; itemCount: number; totals: { totalCents: number }; items: { productId: string; name: string; quantity: number }[]; awaitingPayment: boolean }
 

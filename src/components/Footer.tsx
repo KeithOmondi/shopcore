@@ -2,7 +2,8 @@ import Link from 'next/link';
 
 import { Icon } from './icons';
 
-export function Footer({ categories }: { categories: { handle: string; name: string }[] }) {
+export function Footer({ categories, pages = [] }: { categories: { handle: string; name: string }[]; pages?: { title: string; slug: string }[] }) {
+  const extra = pages.filter((p) => !['/terms', '/privacy'].includes(p.slug)).slice(0, 6);
   return (
     <footer className="mt-12 bg-ink text-white/80">
       <div className="border-b border-white/10">
@@ -26,6 +27,7 @@ export function Footer({ categories }: { categories: { handle: string; name: str
             {categories.slice(0, 6).map((c) => <li key={c.handle}><Link className="hover:text-white hover:underline" href={`/c/${c.handle}`}>{c.name}</Link></li>)}
             <li><Link className="hover:text-white hover:underline" href="/categories">All categories</Link></li>
             <li><Link className="hover:text-white hover:underline" href="/deals">Deals</Link></li>
+            <li><Link className="hover:text-white hover:underline" href="/offers">Offers and rewards</Link></li>
           </ul>
         </div>
         <div>
@@ -33,7 +35,9 @@ export function Footer({ categories }: { categories: { handle: string; name: str
           <ul className="mt-3 space-y-2 text-sm">
             <li><Link className="hover:text-white hover:underline" href="/help">Help centre</Link></li>
             <li><Link className="hover:text-white hover:underline" href="/account/orders">Track my order</Link></li>
+            <li><Link className="hover:text-white hover:underline" href="/account/support">Contact support</Link></li>
             <li><Link className="hover:text-white hover:underline" href="/help">Returns and refunds</Link></li>
+            {extra.map((p) => <li key={p.slug}><Link className="hover:text-white hover:underline" href={`/info/${p.slug.replace(/^[/]+/, '')}`}>{p.title}</Link></li>)}
             <li><Link className="hover:text-white hover:underline" href="/terms">Terms of service</Link></li>
             <li><Link className="hover:text-white hover:underline" href="/privacy">Privacy policy</Link></li>
           </ul>

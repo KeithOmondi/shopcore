@@ -38,6 +38,10 @@ From your own computer: `npm run deploy` (needs `npx wrangler login` once), `npm
 
 Pages are built on each visit and the catalogue is cached at Cloudflare's edge for a minute, so the build never needs the API to be reachable.
 
-## Not included yet
+## What the site covers
 
-Live chat with support, guest checkout, product reviews from the website, loyalty points and gift cards.
+Browsing, search and filters, product pages with reviews, cart, checkout (M-Pesa or cash on delivery), accounts, addresses, wishlist, orders with tracking and receipts, returns, refund requests, order and rider ratings, support tickets and live chat, notifications, rewards and referrals, bundle deals, settings (notifications, change phone, delete account), help centre with search, legal and extra content pages, and a maintenance screen that follows the switch in the admin.
+
+## Not included
+
+Guest checkout (the API places orders for signed-in customers only), card payments, and uploading photos with a return request.
